@@ -14,9 +14,7 @@ const createUrl = async function (req, res) {
         if (valid(longUrl) == false) { return res.status(400).send({ status: false, message: "invalid  longUrl" }) }
 
         if (regForUrl(longUrl) == false) { return res.status(400).send({ status: false, message: "invalid  longUrl fomat" }) }
-
-
-        let longUrlPresent = await urlModel.findOne({ longUrl: longUrl }).select({_id:0, __v:0})
+        let longUrlPresent = await urlModel.findOne({ longUrl: longUrl }).select({ _id: 0, __v: 0 })
         if (longUrlPresent) {
 
             return res.status(200).send({ status: true, message: longUrlPresent })
@@ -24,28 +22,29 @@ const createUrl = async function (req, res) {
         let code = shortid.generate()
         let newurl = `http://localhost:3000/${code}`
         let obj = {}
-        obj.urlCode = code
         obj.longUrl = longUrl
         obj.shortUrl = newurl
-        let createData=await urlModel.create(obj)
-        return res.status(201).send({ status: true, message: createData})
+        obj.urlCode = code
+        await urlModel.create(obj)
+        return res.status(201).send({ status: true, message: obj })
     }
     catch (err) {
         res.status(500).send({ status: false, message: err.message })
-     }
+    }
 }
+
 
 let getUrl = async function (req, res) {
     try {
         let urlCode = req.params.urlCode
         let realUrl = await urlModel.findOne({ urlCode: urlCode })
         if (!realUrl) { return res.status(400).send({ status: false, message: "url is not prsent" }) }
-        let originalUrl=realUrl.longUrl
-        return res.status(200).send({originalUrl})
+        let originalUrl = realUrl.longUrl
+        return res.status(302).redirect(originalUrl )
 
     }
     catch (err) {
-       return res.status(500).send({ status: false, message: err.message })
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 
